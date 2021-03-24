@@ -1,10 +1,11 @@
 import os
 import json
 
-# with open('secrets.json') as json_data_file:
-#   data = json.load(json_data_file)
-
-data = {'botToken':os.environ['botToken'],'uptimerobot':os.environ['uptimerobot']}
+try:
+  data = {'botToken':os.environ['botToken'],'uptimerobot':os.environ['uptimerobot']}
+except:
+  with open('secrets.json') as json_data_file:
+    data = json.load(json_data_file)
 
 prefixes = ['jamilbot ', 'jb ']
 description: str = f'prefixes: {str(prefixes).strip("[]")}'

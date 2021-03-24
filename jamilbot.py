@@ -141,17 +141,7 @@ async def on_command_error(self, exception):
         error_embed.add_field(name='Cause', value=f'{exception.__cause__ }', inline=False)
         await error_message.edit(embed=error_embed)
 
-@bot.command()
-async def load(ctx,extension):
-    bot.load_extension(f'cogs.{extension}')
 
-@bot.command()
-async def unload(ctx,extension):
-    bot.unload_extension(f'cogs.{extension}')
-
-
-
-print('Dunno')
 def run():
     print('Running!')
     for cog in COGS:
@@ -160,15 +150,22 @@ def run():
     log.debug('Starting bot...')
     bot.run(c.data["botToken"], bot=True, reconnect=True)
 
-print('Will run?')
 if __name__ == '__main__':
-    print('Yess')
     for cog in COGS:
         bot.load_extension(cog)
-        
+
     log.debug('Starting bot...')
     bot.run(c.data["botToken"], bot=True, reconnect=True)
+
 # bot.logout()
+
+# @bot.command()
+# async def load(ctx,extension):
+#     bot.load_extension(f'cogs.{extension}')
+
+# @bot.command()
+# async def unload(ctx,extension):
+#     bot.unload_extension(f'cogs.{extension}')
 
 # @bot.event
 # async def on_ready():
