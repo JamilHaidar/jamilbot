@@ -7,3 +7,4 @@ app = Flask(__name__)
 def index():
     user = {'username': 'Miguel'}
     return render_template('index.html'),200
+import jamilbot

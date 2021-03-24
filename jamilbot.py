@@ -159,6 +159,13 @@ if __name__ == '__main__':
     bot.run(c.data["botToken"], bot=True, reconnect=True)
 
 print('Dunno')
+def run():
+    print('Running!')
+    for cog in COGS:
+        bot.load_extension(cog)
+
+    log.debug('Starting bot...')
+    bot.run(c.data["botToken"], bot=True, reconnect=True)
 # bot.logout()
 
 # @bot.event
