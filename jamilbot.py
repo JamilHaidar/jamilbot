@@ -13,8 +13,10 @@ from cogs.utils import rules
 
 from app.main import app
 from threading import Thread
-
-Thread(target=app.run).start()
+def app_run():
+    PORT = os.environ.get('PORT')
+    app.run(host="0.0.0.0", port=PORT)
+Thread(target=app_run).start()
 
 # COGS = ['cogs.owner',
 #         'cogs.commands',
