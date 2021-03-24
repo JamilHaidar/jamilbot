@@ -1,7 +1,9 @@
 from flask import Flask
-  
+from flask import render_template  
 app = Flask(__name__)
-  
+
+@app.route('/index',methods=['GET','POST'])  
 @app.route("/",methods=['GET','POST'])
-def home_view():
-        return "<h1>Nothing to see here</h1>"
+def index():
+    user = {'username': 'Miguel'}
+    return render_template('index.html'),200
