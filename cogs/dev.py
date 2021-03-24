@@ -1,5 +1,5 @@
 
-from .. import config as c
+import config as c
 
 import os
 import re
@@ -9,8 +9,8 @@ import datetime
 
 from pytz import timezone
 from datetime import timezone
-from .utils import checks
-from .utils import uptime
+from cogs.utils import checks
+from cogs.utils import uptime
 
 import discord
 from discord.ext import commands

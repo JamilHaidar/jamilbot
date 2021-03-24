@@ -1,6 +1,6 @@
 import git
 import inspect
-from .. import config as c
+import config as c
 
 #from phue import Bridge
 from discord.ext import commands

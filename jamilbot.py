@@ -8,8 +8,8 @@ import random
 import datetime
 import asyncio
 
-from . import config as c
-from .cogs.utils import rules
+import config as c
+from cogs.utils import rules
 
 # COGS = ['cogs.owner',
 #         'cogs.commands',

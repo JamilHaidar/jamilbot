@@ -1,9 +1,9 @@
 import discord
-from .. import config as c
+import config as c
 import asyncio
 
 from discord.ext import commands
-from .utils import rules
+from cogs.utils import rules
 
 class AdminCog(commands.Cog, name="Admin"):
     """ AdminCog """
