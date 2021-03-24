@@ -149,13 +149,16 @@ async def load(ctx,extension):
 async def unload(ctx,extension):
     bot.unload_extension(f'cogs.{extension}')
 
+print('Will run?')
 if __name__ == '__main__':
+    print('Yess')
     for cog in COGS:
         bot.load_extension(cog)
 
     log.debug('Starting bot...')
     bot.run(c.data["botToken"], bot=True, reconnect=True)
-    
+
+print('Dunno')
 # bot.logout()
 
 # @bot.event
