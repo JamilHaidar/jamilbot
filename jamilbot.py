@@ -11,6 +11,11 @@ import asyncio
 import config as c
 from cogs.utils import rules
 
+from app.main import app
+from threading import Thread
+
+Thread(target=app.run).start()
+
 # COGS = ['cogs.owner',
 #         'cogs.commands',
 #         'cogs.admin',
@@ -142,7 +147,7 @@ async def on_command_error(self, exception):
         await error_message.edit(embed=error_embed)
 
 
-def run():
+def weird_run():
     print('Running!')
     for cog in COGS:
         bot.load_extension(cog)

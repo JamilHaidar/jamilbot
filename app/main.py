@@ -1,9 +1,5 @@
 from flask import Flask
 from flask import render_template  
-import jamilbot
-from threading import Thread
-
-Thread(target=jamilbot.run).start()
 
 app = Flask(__name__)
 
