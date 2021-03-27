@@ -10,7 +10,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
     def __init__(self, bot):
         self.bot = bot
-
+    
     @commands.command(name='spam', hidden=True)
     @commands.has_permissions(manage_messages=True)
     async def _spam(self, ctx, times: int = 1, *, msg: str = 'spam'):

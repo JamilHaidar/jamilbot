@@ -14,8 +14,11 @@ from cogs.utils import rules
 from app.main import app
 from threading import Thread
 def app_run():
-    PORT = os.environ.get('PORT')
-    app.run(host="0.0.0.0", port=PORT)
+    try:
+        PORT = os.environ.get('PORT')
+        app.run(host="0.0.0.0", port=PORT)
+    except:
+        app.run(host="0.0.0.0",port='8080')
 Thread(target=app_run).start()
 
 # COGS = ['cogs.owner',
@@ -28,12 +31,13 @@ Thread(target=app_run).start()
 #         'cogs.help'
 #         ]
 COGS = ['cogs.owner',
-        'cogs.admin']
+        'cogs.admin',
+        'cogs.dev',
+        'cogs.help']
 
 # DEBUG, INFO, WARNING, ERROR, CRITICAL, EXCEPTION
 logging.basicConfig(stream=sys.stdout,
                     level=logging.INFO,
-                    #format='[%(asctime)s] [' + '%(levelname)s'.ljust(9) + '] %(name)s %(message)s',
                     format='%(levelname)-8s %(message)s',
                     datefmt='%d/%m/%Y %H:%M:%S'
                     )
@@ -93,7 +97,7 @@ async def on_message(message):
             if message.content.upper() == 'F':
                 await message.channel.send('F')
         if str(rules.getrule('dad', message.guild.id)).lower() == 'true':
-            dads = ["i\'m", "i am", "jeg er", "ich bin", "ik ben", "jag är", "æ e"]
+            dads = ["i\'m","im","ana", "i am", "jeg er", "ich bin", "ik ben", "jag är", "æ e"]
             for dad in dads:
                 if message.content.lower().startswith(dad):
                     if dad in message.content.lower():
@@ -147,15 +151,6 @@ async def on_command_error(self, exception):
         error_embed.add_field(name='Details', value=f'{exception.__doc__}', inline=False)
         error_embed.add_field(name='Cause', value=f'{exception.__cause__ }', inline=False)
         await error_message.edit(embed=error_embed)
-
-
-def weird_run():
-    print('Running!')
-    for cog in COGS:
-        bot.load_extension(cog)
-
-    log.debug('Starting bot...')
-    bot.run(c.data["botToken"], bot=True, reconnect=True)
 
 if __name__ == '__main__':
     for cog in COGS:
