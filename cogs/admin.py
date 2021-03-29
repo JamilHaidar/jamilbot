@@ -298,7 +298,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command()
     @commands.guild_only()
     @checks.is_dev()
-    async def join(ctx):
+    async def join_vc(ctx):
         if ctx.author.voice is None:
             await ctx.send('Please join a voice channel first!')
         else:
@@ -308,7 +308,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command()
     @commands.guild_only()
     @checks.is_dev()
-    async def leave(ctx):
+    async def leave_vc(ctx):
         await ctx.voice_client.disconnect()
 
     @commands.command()
