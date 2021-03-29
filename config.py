@@ -7,7 +7,7 @@ except:
   with open('secrets.json') as json_data_file:
     data = json.load(json_data_file)
 
-prefixes = ['jamilbot ', 'jb ']
+prefixes = ['classbot ', 'cb ']
 description: str = f'prefixes: {str(prefixes).strip("[]")}'
 srcDir: str = (os.path.dirname(os.path.realpath(__file__)))
 

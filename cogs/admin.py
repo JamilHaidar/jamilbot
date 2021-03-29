@@ -1,18 +1,119 @@
 import discord
+from discord.ext.commands.core import check, guild_only
+from pandas.core.frame import DataFrame
 import config as c
 import asyncio
-
+from io import BytesIO
 from discord.ext import commands
 from cogs.utils import rules
-
+from cogs.utils import loops
+import datetime
+import pandas as pd
+from cogs.utils import checks
 class AdminCog(commands.Cog, name="Admin"):
     """ AdminCog """
 
     def __init__(self, bot):
         self.bot = bot
+        self.lock = asyncio.Lock()
+        self.attendance_data = dict()
+        self.tasks = dict()
+
+    @commands.command(name='start_class',dev=True)
+    @commands.guild_only()
+    @checks.is_dev()
+    async def _start_class(self,ctx):
+        if ctx.guild.id in self.tasks:
+            await ctx.send('Class already started!')
+            return
+        if ctx.author.voice is None:
+            await ctx.send('Please join a voice channel first!')
+        else:
+            channel = ctx.author.voice.channel
+            await channel.connect()
+            try:
+                for member in ctx.guild.members:    
+                    if member.bot:continue
+                    if not(member.voice is None):
+                        if not(member.voice.channel is None):
+                            await member.move_to(channel=channel, reason='Class started.')
+                    # else:
+                    #     print('sending',member.nick,member.name)
+                    #     await member.send('Class is starting! ')
+                    #     print('dm sending',member.nick,member.name)
+                    #     invitation = await channel.create_invite(max_uses=1,max_age=7200,reason='Class starting.')
+                    #     dm = await member.create_dm()
+                    #     await dm.send(invitation)
+                    #     print('done sending',member.nick,member.name)
+            except Exception as e:
+                print('error!!')
+                print(e)
+            self.attendance_data[ctx.guild.id] = [pd.DataFrame(),channel.id]
+            margs = {
+            'seconds': 15,
+            'minutes': 0,
+            'hours': 0,
+            'count': None,
+            'reconnect': True,
+            'loop': None
+            }
+            mLoop = loops.Loop(self.attendance, **margs)
+            self.tasks[ctx.guild.id] = mLoop
+            self.tasks[ctx.guild.id].start(guild_id=ctx.guild.id)
+    
+    @commands.command(name='end_class',dev=True)
+    @commands.guild_only()
+    @checks.is_dev()
+    async def _end_class(self,ctx):
+        if ctx.guild.id not in self.tasks:
+            await ctx.send('Class not started yet!')
+            return
+        task = self.tasks.pop(ctx.guild.id)
+        task.stop()
+
+        df = self.attendance_data[ctx.guild.id][0].fillna(0)
+        total = df.sum()
+        total.name = 'Total'
+        df = df.append(total)
+        percentage = total/(df.shape[0]-1)
+        percentage.name = 'Percentage'
+        percentage = percentage.apply('{:.0%}'.format)
+        df = df.append(percentage)
+        with BytesIO() as excel_binary:
+            df.to_excel(excel_binary)
+            excel_binary.seek(0)
+            await ctx.send(file=discord.File(fp=excel_binary, filename=f'attendance-{datetime.datetime.now().date()}.xlsx'))
+
+        vc = discord.utils.get(self.bot.voice_clients,guild=ctx.guild)
+
+        for member in ctx.guild.members:
+            if member.bot:continue
+            if not(member.voice is None):
+                if not(member.voice.channel is None):
+                    await member.move_to(channel=None,reason='Class ended.')
+            # else:
+            #     dm = await member.create_dm()
+            #     await dm.send('Class ended.')
+
+        if not(vc is None):
+            invites = await vc.channel.invites()
+            for invite in invites:
+                await invite.delete(reason='Class ended. Removing all invites.')
+            await vc.disconnect()
+  
+    async def do_attendance(self,guild_id: int):
+        guild = self.bot.get_guild(guild_id)
+        channel_members = guild.get_channel(self.attendance_data[guild_id][1]).members
+        channel_members = [elem.nick if elem.nick is not None else elem.name for elem in channel_members]
+        self.attendance_data[guild_id][0].loc[datetime.datetime.now(),channel_members]=1.0 
+    
+    async def attendance(self,guild_id: int):
+        async with self.lock:
+            await self.do_attendance(guild_id)
     
     @commands.command(name='spam', hidden=True)
     @commands.has_permissions(manage_messages=True)
+    @checks.is_dev()
     async def _spam(self, ctx, times: int = 1, *, msg: str = 'spam'):
         """ Repeat a message multiple times.
         """
@@ -21,6 +122,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
     @commands.command(name='pin')
     @commands.has_permissions(manage_messages=True)
+    @checks.is_dev()
     async def _pin(self, ctx):
         """ Pin previous message.
         """
@@ -36,6 +138,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
     @commands.command(name='unpin')
     @commands.has_permissions(manage_messages=True)
+    @checks.is_dev()
     async def _unpin(self, ctx):
         """ Unpin previous message.
         """
@@ -51,6 +154,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
     @commands.command(name='purge')
     @commands.has_permissions(manage_guild=True)
+    @checks.is_dev()
     async def _purge(self, ctx, amount: str, member: discord.Member = None, channel: int = None):
         """ Purge messages from current channel
         """
@@ -105,6 +209,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command(name='kick')
     @commands.has_permissions(kick_members=True)
     @commands.guild_only()
+    @checks.is_dev()
     async def _kick(self, ctx, *members: discord.Member):
         """ Kicks the specified member(s).
         """
@@ -112,9 +217,11 @@ class AdminCog(commands.Cog, name="Admin"):
             await ctx.message.guild.kick(member)
             await ctx.send(f'```{member} was kicked from the server.```')
 
+
     @commands.command(name='ban')
     @commands.has_permissions(ban_members=True)
     @commands.guild_only()
+    @checks.is_dev()
     async def _ban(self, ctx, *members: discord.Member):
         """ Bans the specified member(s) and deletes their messages.
         """
@@ -125,6 +232,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command(name='unban')
     @commands.has_permissions(ban_members=True)
     @commands.guild_only()
+    @checks.is_dev()
     async def _unban(self, ctx, *, name: str):
         """ Unbans a member.
         """
@@ -139,6 +247,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command(name='leave', aliases=['disconnect'])
     @commands.has_permissions(manage_guild=True, kick_members=True, ban_members=True)
     @commands.guild_only()
+    @checks.is_dev()
     async def _leave(self, ctx):
         """ Remove bot from server.
         """
@@ -148,6 +257,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command(name='nick', aliases=['nickname', 'changenick'])
     @commands.has_permissions(manage_guild=True)
     @commands.guild_only()
+    @checks.is_dev()
     async def _nickname(self, ctx, nickname, *members: discord.Member):
         """ Change member(s) nickname(s).
         """
@@ -159,8 +269,9 @@ class AdminCog(commands.Cog, name="Admin"):
         await ctx.send('Command not fully implemented yet!')
 
     @commands.command(name='setrule', aliases=['gamerule'])
-    #@commands.has_permissions(manage_server=True)
+    # @commands.has_permissions(manage_server=True)
     @commands.guild_only()
+    @checks.is_dev()
     async def _setrule(self, ctx, key: str, value: str = 'get'):
         """ Set a server-side rule.
             Set value to NONE to delete server-rule.
@@ -173,6 +284,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
     @commands.command(name='getrule')
     @commands.guild_only()
+    @checks.is_dev()
     async def _getrule(self, ctx, key: str):
         """ Get a server-side rule.
         """
@@ -182,7 +294,28 @@ class AdminCog(commands.Cog, name="Admin"):
             await ctx.send('```apache\nNot set.```')
         else:
             await ctx.send(f'```apache\n{ruleinf}```')
+    
+    @commands.command()
+    @commands.guild_only()
+    @checks.is_dev()
+    async def join(ctx):
+        if ctx.author.voice is None:
+            await ctx.send('Please join a voice channel first!')
+        else:
+            channel = ctx.author.voice.channel
+            await channel.connect()
 
+    @commands.command()
+    @commands.guild_only()
+    @checks.is_dev()
+    async def leave(ctx):
+        await ctx.voice_client.disconnect()
+
+    @commands.command()
+    @commands.guild_only()
+    @checks.is_dev()
+    async def clear(ctx,amount=5):
+        await ctx.purge(limit=amount+1)
 
 def setup(bot):
     bot.add_cog(AdminCog(bot))

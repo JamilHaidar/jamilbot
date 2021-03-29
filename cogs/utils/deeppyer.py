@@ -1,111 +1,109 @@
-# https://github.com/Ovyerus/deeppyer
-"""
-MIT License
-
-Copyright (c) 2017 Ovyerus
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
-
-from PIL import Image, ImageOps, ImageEnhance
+from collections import namedtuple
 from io import BytesIO
-from enum import Enum
-import aiohttp, asyncio, math, argparse
+import math
+import pkgutil
+from typing import Tuple
+import os
+from PIL import Image, ImageOps, ImageEnhance
+import cv2
+import numpy as np
 
-class DeepfryTypes(Enum):
+__all__ = ('Colour', 'ColourTuple', 'DefaultColours', 'deepfry')
+
+Colour = Tuple[int, int, int]
+ColourTuple = Tuple[Colour, Colour]
+
+
+class DefaultColours:
+    """Default colours provided for deepfrying"""
+    red = ((254, 0, 2), (255, 255, 15))
+    blue = ((36, 113, 229), (255,) * 3)
+
+
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades +'haarcascade_frontalface_default.xml')
+eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml')
+# flare_img = Image.open()
+
+flare_opencv = cv2.imread(f'{str(os.path.dirname(os.path.realpath(__file__)))}/../../img/flare.png',-1)
+
+def overlay_image_alpha(img, img_overlay, x, y, alpha_mask):
+    """Overlay `img_overlay` onto `img` at (x, y) and blend using `alpha_mask`.
+
+    `alpha_mask` must have same HxW as `img_overlay` and values in range [0, 1].
     """
-    Enum for the various possible effects added to the image.
+    # Image ranges
+    y1, y2 = max(0, y), min(img.shape[0], y + img_overlay.shape[0])
+    x1, x2 = max(0, x), min(img.shape[1], x + img_overlay.shape[1])
+
+    # Overlay ranges
+    y1o, y2o = max(0, -y), min(img_overlay.shape[0], img.shape[0] - y)
+    x1o, x2o = max(0, -x), min(img_overlay.shape[1], img.shape[1] - x)
+
+    # Exit if nothing to do
+    if y1 >= y2 or x1 >= x2 or y1o >= y2o or x1o >= x2o:
+        return
+
+    # Blend overlay within the determined ranges
+    img_crop = img[y1:y2, x1:x2]
+    img_overlay_crop = img_overlay[y1o:y2o, x1o:x2o]
+    alpha = alpha_mask[y1o:y2o, x1o:x2o, np.newaxis]
+    alpha_inv = 1.0 - alpha
+
+    img_crop[:] = alpha * img_overlay_crop + alpha_inv * img_crop
+
+async def deepfry(img: Image, *, colours: ColourTuple = DefaultColours.red, flares: bool = True,scale: float = 1.0) -> Image:
     """
-    RED = 1
-    BLUE = 2
-
-
-class Colours:
-    RED = (254, 0, 2)
-    YELLOW = (255, 255, 15)
-    BLUE = (36, 113, 229)
-    WHITE = (255,) * 3
-
-
-# TODO: Replace face recognition API with something like OpenCV.
-
-async def deepfry(img: Image, *, token: str=None, url_base: str='westcentralus', session: aiohttp.ClientSession=None, type=DeepfryTypes.RED) -> Image:
-    """
-    Deepfry an image.
-
-    img: PIL.Image - Image to deepfry.
-    [token]: str - Token to use for Microsoft facial recognition API. If this is not supplied, lens flares will not be added.
-    [url_base]: str = 'westcentralus' - API base to use. Only needed if your key's region is not `westcentralus`.
-    [session]: aiohttp.ClientSession - Optional session to use with API requests. If provided, may provide a bit more speed.
-
-    Returns: PIL.Image - Deepfried image.
+    Deepfry a given image.
+    Parameters
+    ----------
+    img : `Image`
+        Image to manipulate.
+    colours : `ColourTuple`, optional
+        A tuple of the colours to apply on the image.
+    flares : `bool`, optional
+        Whether or not to try and detect faces for applying lens flares.
+    Returns
+    -------
+    `Image`
+        Deepfried image.
     """
     img = img.copy().convert('RGB')
 
-    if type not in DeepfryTypes:
-        raise ValueError(f'Unknown deepfry type "{type}", expected a value from deeppyer.DeepfryTypes')
+    if flares:
+        opencv_img_gray = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2GRAY)
+        opencv_img = cv2.cvtColor(np.array(img),cv2.COLOR_RGB2BGRA)
 
-    if token:
-        req_url = f'https://{url_base}.api.cognitive.microsoft.com/face/v1.0/detect?returnFaceId=false&returnFaceLandmarks=true' # WHY THE FUCK IS THIS SO LONG
-        headers = {
-            'Content-Type': 'application/octet-stream',
-            'Ocp-Apim-Subscription-Key': token,
-            'User-Agent': 'DeepPyer/1.0'
-        }
-        b = BytesIO()
+        faces = face_cascade.detectMultiScale(opencv_img_gray,1.3,5)
+        for (x, y, w, h) in faces:
+            face_roi = opencv_img_gray[y:y+h, x:x+w]  # Get region of interest (detected face)
 
-        img.save(b, 'jpeg')
-        b.seek(0)
+            eyes = eye_cascade.detectMultiScale(face_roi)
+            if len(eyes)!=2:continue
+            try:
+                for (ex, ey, ew, eh) in eyes:
+                    
+                    new_w = int(ew*scale)
+                    new_h = int(eh*scale)
+                    
+                    temp_flare = cv2.resize(flare_opencv.copy(),(new_w,new_h))
+                    
+                    corner_y = (ey+y)-int((new_h-eh)/2)
+                    corner_x = (ex+x)-int((new_w-ew)/2)
+                    
+                    y1, y2 = corner_y, corner_y+new_h
+                    x1, x2 = corner_x, corner_x+new_h
 
-        if session:
-            async with session.post(req_url, headers=headers, data=b.read()) as r:
-                face_data = await r.json()
-        else:
-            async with aiohttp.ClientSession() as s, s.post(req_url, headers=headers, data=b.read()) as r:
-                face_data = await r.json()
-
-        if 'error' in face_data:
-            err = face_data['error']
-            code = err.get('code', err.get('statusCode'))
-            msg = err['message']
-
-            raise Exception(f'Error with Microsoft Face Recognition API\n{code}: {msg}')
-
-        if face_data:
-            landmarks = face_data[0]['faceLandmarks']
-
-            # Get size and positions of eyes, and generate sizes for the flares
-            eye_left_width = math.ceil(landmarks['eyeLeftInner']['x'] - landmarks['eyeLeftOuter']['x'])
-            eye_left_height = math.ceil(landmarks['eyeLeftBottom']['y'] - landmarks['eyeLeftTop']['y'])
-            eye_left_corner = (landmarks['eyeLeftOuter']['x'], landmarks['eyeLeftTop']['y'])
-            flare_left_size = eye_left_height if eye_left_height > eye_left_width else eye_left_width
-            flare_left_size *= 4
-            eye_left_corner = tuple(math.floor(x - flare_left_size / 2.5 + 5) for x in eye_left_corner)
-
-            eye_right_width = math.ceil(landmarks['eyeRightOuter']['x'] - landmarks['eyeRightInner']['x'])
-            eye_right_height = math.ceil(landmarks['eyeRightBottom']['y'] - landmarks['eyeRightTop']['y'])
-            eye_right_corner = (landmarks['eyeRightInner']['x'], landmarks['eyeRightTop']['y'])
-            flare_right_size = eye_right_height if eye_right_height > eye_right_width else eye_right_width
-            flare_right_size *= 4
-            eye_right_corner = tuple(math.floor(x - flare_right_size / 2.5 + 5) for x in eye_right_corner)
-
+                    alpha_s = temp_flare[:, :, 3] / 255.0
+                    alpha_l = 1.0 - alpha_s
+                    for c in range(0, 3):
+                        opencv_img[y1:y2, x1:x2, c] = (alpha_s * temp_flare[:, :, c] +
+                                                alpha_l * opencv_img[y1:y2, x1:x2, c])
+            except Exception as e:
+                print(e)
+                
     # Crush image to hell and back
+    opencv_img = cv2.cvtColor(opencv_img, cv2.COLOR_BGRA2RGB)
+    img = Image.fromarray(opencv_img)
     img = img.convert('RGB')
     width, height = img.width, img.height
     img = img.resize((int(width ** .75), int(height ** .75)), resample=Image.LANCZOS)
@@ -114,46 +112,15 @@ async def deepfry(img: Image, *, token: str=None, url_base: str='westcentralus',
     img = img.resize((width, height), resample=Image.BICUBIC)
     img = ImageOps.posterize(img, 4)
 
-    # Generate red and yellow overlay for classic deepfry effect
+    # Generate colour overlay
     r = img.split()[0]
     r = ImageEnhance.Contrast(r).enhance(2.0)
     r = ImageEnhance.Brightness(r).enhance(1.5)
 
-    if type == DeepfryTypes.RED:
-        r = ImageOps.colorize(r, Colours.RED, Colours.YELLOW)
-    elif type == DeepfryTypes.BLUE:
-        r = ImageOps.colorize(r, Colours.BLUE, Colours.WHITE)
+    r = ImageOps.colorize(r, colours[0], colours[1])
 
     # Overlay red and yellow onto main image and sharpen the hell out of it
     img = Image.blend(img, r, 0.75)
     img = ImageEnhance.Sharpness(img).enhance(100.0)
-
-    if token and face_data:
-        # Copy and resize flares
-        flare = Image.open('./flare.png')
-        flare_left = flare.copy().resize((flare_left_size,) * 2, resample=Image.BILINEAR)
-        flare_right = flare.copy().resize((flare_right_size,) * 2, resample=Image.BILINEAR)
-
-        del flare
-
-        img.paste(flare_left, eye_left_corner, flare_left)
-        img.paste(flare_right, eye_right_corner, flare_right)
-
+    
     return img
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Deepfry an image, optionally adding lens flares for eyes.')
-    parser.add_argument('-v', '--version', action='version', version='%(prog)s 1.0', help='Display program version.')
-    parser.add_argument('-t', '--token', help='Token to use for facial recognition API.')
-    parser.add_argument('-o', '--output', help='Filename to output to.')
-    parser.add_argument('file', metavar='FILE', help='File to deepfry.')
-    args = parser.parse_args()
-
-    token = args.token
-    img = Image.open(args.file)
-    out = args.output or './deepfried.jpg'
-
-    loop = asyncio.get_event_loop()
-    img = loop.run_until_complete(deepfry(img, token=token))
-
-    img.save(out, 'jpeg')

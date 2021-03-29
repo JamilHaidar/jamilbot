@@ -2,7 +2,7 @@ import datetime
 import os
 import config as c
 from inspect import signature
-
+from cogs.utils.checks import user_is_developer
 import discord
 from discord.ext import commands
 
@@ -18,16 +18,21 @@ class HelpCog(commands.Cog, name="Help"):
         """ General bot help.
             https://docs.python.org/3/library/inspect.html
         """
-        gearIcon = 'https://gist.githubusercontent.com/runarsf/0404fe681e5735386ccaf1bd8bfd40a7/raw/125d392d4bb1b21a0fa6c45f063cf353b355c487/gear.png'
+        gearIcon = "https://i.ibb.co/TwwnHXQ/gear.png"
         if not command:
             helpEmbed = discord.Embed(title='', timestamp=datetime.datetime.utcnow(), description=f'```apache\n{", ".join(c.prefixes)}```', color=discord.Color.from_rgb(48, 105, 152))
             helpEmbed.set_footer(text='All Commands', icon_url=gearIcon)
             for cog in self.bot.cogs:
                 body = ''
                 for cmd in self.bot.commands:
+                    try:
+                        if not await cmd.can_run(ctx):continue
+                    except:
+                        continue
                     if str(cmd.cog.qualified_name) == str(cog) and not cmd.hidden:
                         nameAliases = str(cmd) if not ' | '.join(cmd.aliases) else '['+str(' | '.join(str(cmd).split(" ")+cmd.aliases)+']')
                         body += '  • '+nameAliases+'\n'
+                if body =='':continue
                 helpEmbed.add_field(name=str(cog), value=body, inline=False)
             await ctx.send(embed=helpEmbed)
             return

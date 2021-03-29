@@ -19,7 +19,8 @@ def app_run():
         app.run(host="0.0.0.0", port=PORT)
     except:
         app.run(host="0.0.0.0",port='8080')
-Thread(target=app_run).start()
+app_thread = Thread(target=app_run)
+app_thread.start()
 
 # COGS = ['cogs.owner',
 #         'cogs.commands',
@@ -33,7 +34,8 @@ Thread(target=app_run).start()
 COGS = ['cogs.owner',
         'cogs.admin',
         'cogs.dev',
-        'cogs.help']
+        'cogs.help',
+        'cogs.memes']
 
 # DEBUG, INFO, WARNING, ERROR, CRITICAL, EXCEPTION
 logging.basicConfig(stream=sys.stdout,
@@ -109,6 +111,14 @@ async def on_message(message):
     await bot.process_commands(message)
 
 @bot.event
+async def on_voice_state_update(member,before,after):
+    vc = discord.utils.get(bot.voice_clients,guild=member.guild)
+    if not(vc is None):
+        if len(vc.channel.members)==1:
+            await vc.disconnect()
+
+
+@bot.event
 async def on_error(error):
     """
     Whan an error occurs.
@@ -159,107 +169,8 @@ if __name__ == '__main__':
     log.debug('Starting bot...')
     bot.run(c.data["botToken"], bot=True, reconnect=True)
 
+# app_thread.join()
 # bot.logout()
 
-# @bot.command()
-# async def load(ctx,extension):
-#     bot.load_extension(f'cogs.{extension}')
 
-# @bot.command()
-# async def unload(ctx,extension):
-#     bot.unload_extension(f'cogs.{extension}')
-
-# @bot.event
-# async def on_ready():
-#     print('Bot ready')
-
-# @bot.event
-# async def on_voice_state_update(member,before,after):
-#     vc = discord.utils.get(bot.voice_clients,guild=member.guild)
-#     if not(vc is None):
-#         if len(vc.channel.members)==1:
-#             await vc.disconnect()
-            
-# @bot.command()
-# async def forcenudes(context):
-#     await context.send(file=discord.File(f'{str(os.path.dirname(os.path.realpath(__file__)))}/img/anoose.jpg'))
-#     await context.send(f'Come {context.message.author.mention}. *~~He?~~* She\'s waiting for you!')
-
-# @bot.command()
-# async def ping(context):
-#     await context.send(f'Pong! {round(bot.latency * 1000)}ms')
-
-# @bot.command()
-# async def start_class(context):
-
-#     # output = ''   
-#     # for member in context.guild.members:
-#     #     output+=f'name: {member.name}, bot: {member.bot}\n'
-#     # await context.send(output)
-
-#     if context.author.voice is None:
-#         await context.send('Please join a voice channel first!')
-#     else:
-#         channel = context.author.voice.channel
-#         await channel.connect()
-
-#         for member in context.guild.members:    
-#             # print(member.name,member.status)
-#             # print(member.raw_status)
-#             if member.bot:continue
-#             # if member.offline:continue
-#             if not(member.voice is None):
-#                 if not(member.voice.channel is None):
-#                     await member.move_to(channel=channel, reason='Class started.')
-#             else:
-#                 await member.send('Class is starting! ')
-#                 invitation = await channel.create_invite(max_uses=1,max_age=7200,reason='Class starting.')
-#                 dm = await member.create_dm()
-#                 await dm.send(invitation)
-
-# @bot.command()
-# async def end_class(context):
-#     vc = discord.utils.get(bot.voice_clients,guild=context.guild)
-    
-#     for member in context.guild.members:
-#         if member.bot:continue
-#         if not(member.voice is None):
-#             if not(member.voice.channel is None):
-#                 await member.move_to(channel=None,reason='Class ended.')
-#         else:
-#             dm = await member.create_dm()
-#             await dm.send('Class ended.')
-    
-#     if not(vc is None):
-#         invites = await vc.channel.invites()
-#         for invite in invites:
-#             await invite.delete(reason='Class ended. Removing all invites.')
-#         await vc.disconnect()
-
-# @bot.command()
-# async def join(context):
-#     if context.author.voice is None:
-#         await context.send('Please join a voice channel first!')
-#     else:
-#         channel = context.author.voice.channel
-#         await channel.connect()
-
-# @bot.command()
-# async def leave(context):
-#     await context.voice_client.disconnect()
-
-# @bot.command()
-# async def clear(context,amount=5):
-#     await context.purge(limit=amount)
-
-# # @bot.command()
-# # async def purge(context,timing,n_msgs=1):
-# #     if timing=='before':
-# #         pass
-# #     elif timing=='after':
-# #         pass
-# #     elif timing == 'all':
-# #         await context.channel.purge(oldest_first=True)
-# #     else:
-# #         context.send('Please select a viable timing (before|after|all).')
 

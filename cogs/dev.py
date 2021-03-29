@@ -50,6 +50,7 @@ class DevCog(commands.Cog, name="Dev"):
         await ctx.send(f'Ping: {self.bot.ws.latency * 1000:.0f}ms`\nUptime: `{upfor}`\n')
 
     @commands.command(name='arr')
+    @checks.is_dev()
     async def _to_int_arr(self, ctx, *words):
         """ Convert word(s) to an integer array for use with swears (config).
         """
@@ -62,6 +63,7 @@ class DevCog(commands.Cog, name="Dev"):
         await ctx.send(output[2:])
 
     @commands.command(name='uptime')
+    @checks.is_dev()
     async def _uptime(self, ctx):
         """ Shows the uptime of the bot.
         """
@@ -86,6 +88,7 @@ class DevCog(commands.Cog, name="Dev"):
         await ctx.send(path)
 
     @commands.command(name='msgtime')
+    @checks.is_dev()
     async def _msgtime(self, ctx, id: int):
         """ Message creation date.
         """
@@ -93,6 +96,7 @@ class DevCog(commands.Cog, name="Dev"):
         await ctx.send(f'Message was created at ``{msg.created_at}`` UTC')
 
     @commands.command(name='input')
+    @checks.is_dev()
     async def _wait_for_input(self, ctx):
         channel = ctx.message.channel
         await channel.send('Say hello!')
