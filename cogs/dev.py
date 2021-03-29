@@ -40,6 +40,7 @@ class DevCog(commands.Cog, name="Dev"):
         """ Get bot stats.
         """
         rb = json.loads(str(uptime.robot()))
+        print(rb)
         averageResponseTime: str = rb["monitors"][0]["response_times"]["average_response_time"]
         uptimePercent: str = rb["monitors"][0]["all_time_uptime_ratio"]
         await ctx.send(averageResponseTime)

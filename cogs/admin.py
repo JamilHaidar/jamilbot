@@ -104,7 +104,7 @@ class AdminCog(commands.Cog, name="Admin"):
     async def do_attendance(self,guild_id: int):
         guild = self.bot.get_guild(guild_id)
         channel_members = guild.get_channel(self.attendance_data[guild_id][1]).members
-        channel_members = [elem.nick if elem.nick is not None else elem.name for elem in channel_members]
+        channel_members = [elem.name +' - '+elem.nick if elem.nick is not None else elem.name for elem in channel_members]
         self.attendance_data[guild_id][0].loc[datetime.datetime.now(),channel_members]=1.0 
     
     async def attendance(self,guild_id: int):
@@ -298,7 +298,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command()
     @commands.guild_only()
     @checks.is_dev()
-    async def join_vc(ctx):
+    async def join_vc(self,ctx):
         if ctx.author.voice is None:
             await ctx.send('Please join a voice channel first!')
         else:
@@ -308,13 +308,13 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command()
     @commands.guild_only()
     @checks.is_dev()
-    async def leave_vc(ctx):
+    async def leave_vc(self,ctx):
         await ctx.voice_client.disconnect()
 
     @commands.command()
     @commands.guild_only()
     @checks.is_dev()
-    async def clear(ctx,amount=5):
+    async def clear(self,ctx,amount=5):
         await ctx.purge(limit=amount+1)
 
 def setup(bot):
