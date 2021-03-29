@@ -110,12 +110,12 @@ async def on_message(message):
     log.info("[%s]%s> %s" % (message.guild.name, message.author.name, message.content))
     await bot.process_commands(message)
 
-@bot.event
-async def on_voice_state_update(member,before,after):
-    vc = discord.utils.get(bot.voice_clients,guild=member.guild)
-    if not(vc is None):
-        if len(vc.channel.members)==1:
-            await vc.disconnect()
+# @bot.event
+# async def on_voice_state_update(member,before,after):
+#     vc = discord.utils.get(bot.voice_clients,guild=member.guild)
+#     if not(vc is None):
+#         if len(vc.channel.members)==1:
+#             await vc.disconnect()
 
 
 @bot.event
