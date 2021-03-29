@@ -185,7 +185,7 @@ class AdminCog(commands.Cog, name="Admin"):
                         msg = await self.bot.wait_for('message', check=c_check, timeout=7)
                         await ctx.send('Message purge cancelled.')
                     except Exception:
-                        await ctx.message.channel.purge()
+                        await ctx.message.channel.purge(check=_member_check)
                 except Exception:
                     await ctx.send('Response timed out, not doing anything.')
                     return
@@ -315,7 +315,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.guild_only()
     @checks.is_dev()
     async def clear(self,ctx,amount=5):
-        await ctx.purge(limit=amount+1)
+        await ctx.channel.purge(limit=amount+1)
 
 def setup(bot):
     bot.add_cog(AdminCog(bot))
