@@ -47,6 +47,10 @@ class HelpCog(commands.Cog, name="Help"):
             body = ''
             for cmd in self.bot.commands:
                 if str(cmd.cog.qualified_name) == str(cog.qualified_name) and not cmd.hidden:
+                    try:
+                        if not await cmd.can_run(ctx):continue
+                    except:
+                        continue
                     nameAliases = str(cmd) if not ' | '.join(cmd.aliases) else '['+str(' | '.join(str(cmd).split(" ")+cmd.aliases)+']')
                     body += '  • '+nameAliases+'\n'
 
@@ -57,6 +61,10 @@ class HelpCog(commands.Cog, name="Help"):
 
         for cmd in self.bot.commands:
             if str(cmd) == str(self.bot.get_command(command)):
+                try:
+                    if not await cmd.can_run(ctx):continue
+                except:
+                    continue
                 nameAliases = str(cmd) if not ' | '.join(cmd.aliases) else '['+str(' | '.join(str(cmd).split(" ")+cmd.aliases)+']')
                 usage = f'{ctx.prefix}{cmd}'
                 for key, value in cmd.clean_params.items():

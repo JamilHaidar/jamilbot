@@ -43,8 +43,8 @@ class DevCog(commands.Cog, name="Dev"):
         print(rb)
         averageResponseTime: str = rb["monitors"][0]["average_response_time"]
         uptimePercent: str = rb["monitors"][0]["all_time_uptime_ratio"]
-        await ctx.send(averageResponseTime)
-        await ctx.send(uptimePercent)
+        await ctx.send(f'Average Response Time:{averageResponseTime}')
+        await ctx.send(f'UpTime Percentage:{uptimePercent}')
 
         current_time = int(time.time())
         upfor = uptime.readableTime(self.startTime, current_time)
