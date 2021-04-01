@@ -31,6 +31,7 @@ app_thread.start()
 #         'cogs.runners',
 #         'cogs.help'
 #         ]
+
 COGS = ['cogs.owner',
         'cogs.admin',
         'cogs.dev',
@@ -94,6 +95,16 @@ async def on_message(message):
             if re.compile(r'(\s+|^)(' + '|'.join(c.swears) + ')(\s+|$)').search(message.content.lower()):
                 await message.add_reaction(random.choice(c.rages))
                 log.info(message)
+            for harm in c.harms:
+                if harm in message.content.lower():
+                    await message.add_reaction(random.choice(c.sads))
+                    embed = discord.Embed(title='',
+                                timestamp=datetime.datetime.utcnow(),
+                                color=discord.Color.from_rgb(200, 0, 0))
+                    embed.description = "If you're not feeling well. Talk about it. Contact Embrace at [1564](tel:1564)."
+                    await message.channel.send(embed=embed)
+                    log.info(message)
+                    break
             if message.content.startswith('man '):
                 message.content = message.content.replace('man ', c.prefixes[0]+'help ')
             if message.content.upper() == 'F':
@@ -103,7 +114,7 @@ async def on_message(message):
             for dad in dads:
                 if message.content.lower().startswith(dad):
                     if dad in message.content.lower():
-                        await message.channel.send(random.choice(c.greetings)+', '+message.content[int(message.content.lower().find(dad))+len(dad):].strip()+'! I\'m JamilBot.')
+                        await message.channel.send(random.choice(c.greetings)+', '+message.content[int(message.content.lower().find(dad))+len(dad):].strip()+'! I\'m ClassBot.')
                         log.info(message)
     except Exception as e:
         print(e)

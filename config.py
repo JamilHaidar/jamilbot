@@ -15,6 +15,36 @@ owner_id: int = 407612437110456340
 dev_id = [268784734023188493, 407612437110456340]
 
 rages = ['🚩', '😡', '😠', '🇮🇳', '🚫', '⛔', '🙅', '🚯', '👿', '🤐', '😱', '😳', '😭', '😢']
+sads = ['🚩','😢']
+harms = {
+  'kill my self',
+  'suicide',
+  'die',
+  'seppuku',
+  'seppukku',
+  'sepukku',
+  'sepuku',
+  'unlive',
+  'unalive',
+  'death',
+  'unliving',
+  'kms',
+  'sad',
+  'depressed',
+  'lonely',
+  'hurt',
+  'harm',
+  'self-harm',
+  'hang',
+  'hang myself',
+  'cut myself',
+  'cut',
+  'moot',
+  'enteher',
+  'ente7er',
+  'eshno2',
+  'jump off'
+}
 swears = [
   [99, 117, 109, 98, 117, 98, 98, 108, 101],
   [102, 117, 99, 107, 116, 114, 117, 109, 112, 101, 116],
