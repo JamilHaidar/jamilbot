@@ -278,6 +278,7 @@ class AdminCog(commands.Cog, name="Admin"):
             Valid rules:
               - prefixless: True *
               - dad: True *
+              - harm: True *
         """
         key = key.lower()
         await ctx.send(rules.setrule(key, value, ctx.message.guild.id))

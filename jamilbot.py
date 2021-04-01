@@ -95,6 +95,11 @@ async def on_message(message):
             if re.compile(r'(\s+|^)(' + '|'.join(c.swears) + ')(\s+|$)').search(message.content.lower()):
                 await message.add_reaction(random.choice(c.rages))
                 log.info(message)
+            if message.content.startswith('man '):
+                message.content = message.content.replace('man ', c.prefixes[0]+'help ')
+            if message.content.upper() == 'F':
+                await message.channel.send('F')
+        if str(rules.getrule('self-harm', message.guild.id)).lower() == 'true':
             for harm in c.harms:
                 if harm in message.content.lower():
                     await message.add_reaction(random.choice(c.sads))
@@ -106,10 +111,6 @@ async def on_message(message):
                     await message.channel.send(embed=embed)
                     log.info(message)
                     break
-            if message.content.startswith('man '):
-                message.content = message.content.replace('man ', c.prefixes[0]+'help ')
-            if message.content.upper() == 'F':
-                await message.channel.send('F')
         if str(rules.getrule('dad', message.guild.id)).lower() == 'true':
             dads = ["i\'m","im","ana", "i am", "jeg er", "ich bin", "ik ben", "jag är", "æ e"]
             for dad in dads:
