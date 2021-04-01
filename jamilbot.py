@@ -102,7 +102,7 @@ async def on_message(message):
                                 url='tel://1564',
                                 timestamp=datetime.datetime.utcnow(),
                                 color=discord.Color.from_rgb(200, 0, 0))
-                    embed.description = "If you're not feeling well. Talk about it. Contact Embrace at [1564](tel://1564) [link](https://embracelebanon.org/embrace-lifeline/)."
+                    embed.description = "If you're not feeling well. Talk about it. Contact Embrace at [1564](https://jamil-bot.herokuapp.com/embrace), or [here](https://embracelebanon.org/embrace-lifeline/)."
                     await message.channel.send(embed=embed)
                     log.info(message)
                     break
