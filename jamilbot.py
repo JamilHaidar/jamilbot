@@ -99,9 +99,10 @@ async def on_message(message):
                 if harm in message.content.lower():
                     await message.add_reaction(random.choice(c.sads))
                     embed = discord.Embed(title='',
+                                url='tel://1564',
                                 timestamp=datetime.datetime.utcnow(),
                                 color=discord.Color.from_rgb(200, 0, 0))
-                    embed.description = "If you're not feeling well. Talk about it. Contact Embrace at [1564](tel:1564) [link](https://embracelebanon.org/embrace-lifeline/)."
+                    embed.description = "If you're not feeling well. Talk about it. Contact Embrace at [1564](tel://1564) [link](https://embracelebanon.org/embrace-lifeline/)."
                     await message.channel.send(embed=embed)
                     log.info(message)
                     break
