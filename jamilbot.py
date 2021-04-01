@@ -101,7 +101,7 @@ async def on_message(message):
                     embed = discord.Embed(title='',
                                 timestamp=datetime.datetime.utcnow(),
                                 color=discord.Color.from_rgb(200, 0, 0))
-                    embed.description = "If you're not feeling well. Talk about it. Contact Embrace at [1564](tel:1564)."
+                    embed.description = "If you're not feeling well. Talk about it. Contact Embrace at [1564](tel:1564) [link](https://embracelebanon.org/embrace-lifeline/)."
                     await message.channel.send(embed=embed)
                     log.info(message)
                     break
