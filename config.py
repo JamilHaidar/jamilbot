@@ -18,6 +18,7 @@ rages = ['🚩', '😡', '😠', '🇮🇳', '🚫', '⛔', '🙅', '🚯', '�
 sads = ['🚩','😢']
 harms = {
   'kill my self',
+  'kill myself',
   'kill me',
   'stab',
   'stab myself',
