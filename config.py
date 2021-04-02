@@ -52,6 +52,8 @@ harms = {
   'enteher',
   'ente7er',
   'eshno2',
+  'e2tol 7ale',
+  'e2tol hale',
   'jump off'
 }
 swears = [

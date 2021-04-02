@@ -100,17 +100,15 @@ async def on_message(message):
             if message.content.upper() == 'F':
                 await message.channel.send('F')
         if str(rules.getrule('self-harm', message.guild.id)).lower() == 'true':
-            for harm in c.harms:
-                if harm in message.content.lower():
-                    await message.add_reaction(random.choice(c.sads))
-                    embed = discord.Embed(title='',
-                                url='https://jamil-bot.herokuapp.com/embrace',
-                                timestamp=datetime.datetime.utcnow(),
-                                color=discord.Color.from_rgb(200, 0, 0))
-                    embed.description = "If you're not feeling well. Talk about it. Contact Embrace at [1564](https://jamil-bot.herokuapp.com/embrace), or [here](https://embracelebanon.org/embrace-lifeline/)."
-                    await message.channel.send(embed=embed)
-                    log.info(message)
-                    break
+            if re.compile(r'(\s+|^)(' + '|'.join(c.harms) + ')(\s+|$)').search(message.content.lower()):
+                await message.add_reaction(random.choice(c.sads))
+                embed = discord.Embed(title='',
+                            url='https://jamil-bot.herokuapp.com/embrace',
+                            timestamp=datetime.datetime.utcnow(),
+                            color=discord.Color.from_rgb(200, 0, 0))
+                embed.description = "If you're not feeling well. Talk about it. Contact Embrace at [1564](https://jamil-bot.herokuapp.com/embrace), or [here](https://embracelebanon.org/embrace-lifeline/)."
+                await message.channel.send(embed=embed)
+                log.info(message)
         if str(rules.getrule('dad', message.guild.id)).lower() == 'true':
             dads = ["i\'m","im","ana", "i am", "jeg er", "ich bin", "ik ben", "jag är", "æ e"]
             for dad in dads:
