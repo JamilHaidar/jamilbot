@@ -1,4 +1,5 @@
 from itertools import count
+import sqlite3
 import discord
 from discord.ext.commands.core import check, guild_only
 from pandas.core.frame import DataFrame
@@ -360,7 +361,7 @@ class AdminCog(commands.Cog, name="Admin"):
             val = users.set_val(member.id, key, value, ctx.message.guild.id)
             if val is False:
                 await ctx.send('```apache\nNot set.```')
-            return ctx.send(f'```apache\n{val}```')
+            return await ctx.send(f'```apache\n{val}```')
     
     @commands.command(name='get_user_val')
     @commands.guild_only()
@@ -432,19 +433,21 @@ class AdminCog(commands.Cog, name="Admin"):
                 else:
                     try:
                         ruleinf = int(ruleinf)
-                        if val >= ruleinf:
-                            await ctx.send(f'{member} reached {ruleinf} warnings. Muting.')
-                            users.increment_val(member.id,'total_warnings',ctx.message.guild.id)
-                            users.set_val(member.id,'current_warnings',0,ctx.message.guild.id)
-                            await self._mute(member)
-                            await self._get_member(member)
-                        else:
-                            await ctx.send(f'{member} reached {val} warnings. Incrementing.')
-                            users.increment_val(member.id,'total_warnings',ctx.message.guild.id)
-                            users.increment_val(member.id,'current_warnings',ctx.message.guild.id)
-                            await self._get_member(member)
                     except:
                         await ctx.send(f'```apache\nwarning_threshold is not an integer ({ruleinf}).```')
+                        return
+                    if val >= ruleinf:
+                        await ctx.send(f'{member} reached {ruleinf} warnings. Muting.')
+                        users.increment_val(member.id,'total_warnings',ctx.message.guild.id)
+                        users.set_val(member.id,'current_warnings',0,ctx.message.guild.id)
+                        await self._mute(member)
+                        await self._get_member(member)
+                    else:
+                        await ctx.send(f'{member} has {val} warnings. Incrementing.')
+                        users.increment_val(member.id,'total_warnings',ctx.message.guild.id)
+                        users.increment_val(member.id,'current_warnings',ctx.message.guild.id)
+                        await self._get_member(member)
+                    
                 
         else:
             val = users.increment_val(member=member.id,key=key,guildId=ctx.message.guild.id)
@@ -453,6 +456,18 @@ class AdminCog(commands.Cog, name="Admin"):
             else:
                 await self._get_member(member)
 
+    @commands.command(name='backup',aliases=['export','save_userdata'])
+    @commands.guild_only()
+    @checks.is_dev()
+    async def _save_userdata(self,ctx):
+        conn = sqlite3.connect('users.db')
+        df = pd.read_sql_query("SELECT * FROM users", conn)
+        df['member'] = [await ctx.guild.fetch_member(member).name for member in df['member']]
+        with BytesIO() as excel_binary:
+            df.to_excel(excel_binary)
+            excel_binary.seek(0)
+            await ctx.send(file=discord.File(fp=excel_binary, filename=f'userdata-{datetime.datetime.now().date()}.xlsx'))
+        
     @commands.command()
     @commands.guild_only()
     @checks.is_dev()

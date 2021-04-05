@@ -5,3 +5,4 @@ __pycache__
 tester.py
 rules.db
 users.db
+database.csv
