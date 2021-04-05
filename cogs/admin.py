@@ -1,3 +1,4 @@
+from itertools import count
 import discord
 from discord.ext.commands.core import check, guild_only
 from pandas.core.frame import DataFrame
@@ -5,7 +6,7 @@ import config as c
 import asyncio
 from io import BytesIO
 from discord.ext import commands
-from cogs.utils import rules
+from cogs.utils import rules,users
 from cogs.utils import loops
 import datetime
 import pandas as pd
@@ -18,7 +19,20 @@ class AdminCog(commands.Cog, name="Admin"):
         self.lock = asyncio.Lock()
         self.attendance_data = dict()
         self.tasks = dict()
-
+        self.muted_members = dict()
+    
+    @commands.command(name='update_users',dev=True)
+    @commands.guild_only()
+    @checks.is_dev()
+    async def _update_users(self,ctx):
+        await ctx.send('Updating database.')
+        members = set(users.get_table()[:,0])
+        counter = 0
+        for member in ctx.guild.members:
+            if member not in members:
+                counter+=1
+                users.set_val(member.id,'current_warnings',0,ctx.guild.id)
+        await ctx.send(f'Updated {counter} new members.')
     @commands.command(name='start_class',dev=True)
     @commands.guild_only()
     @checks.is_dev()
@@ -253,7 +267,34 @@ class AdminCog(commands.Cog, name="Admin"):
         """
         server = ctx.message.guild
         await server.leave()
+    
+    @commands.command(name='mute', aliases=['timeout'])
+    @commands.has_permissions(manage_guild=True, kick_members=True, ban_members=True)
+    @commands.guild_only()
+    @checks.is_dev()
+    async def _mute(self,ctx, member: discord.Member):
+        role = discord.utils.get(member.server.roles, name='Muted')
+        if role is None:
+            await ctx.send('Role ```Muted``` does not exist!')
+            return
+        try:
+            self.muted_members[member.id] = member.roles[0]
+        except:
+            self.muted_members[member.id] = member.roles[1]
 
+        await ctx.add_roles(member, role)
+        embed=discord.Embed(title="User Muted!", description="**{0}** was muted by **{1}**!".format(member, ctx.message.author), color=0xff00f6)
+        await ctx.send(embed=embed)
+    
+    @commands.command(name='unmute', aliases=['forgive'])
+    @commands.has_permissions(manage_guild=True, kick_members=True, ban_members=True)
+    @commands.guild_only()
+    @checks.is_dev()
+    async def _unmute(self,ctx, member: discord.Member):
+        await ctx.add_roles(member, self.muted_members.pop(member.id))
+        embed=discord.Embed(title="User Muted!", description="**{0}** was muted by **{1}**!".format(member, ctx.message.author), color=0xff00f6)
+        await ctx.send(embed=embed)
+     
     @commands.command(name='nick', aliases=['nickname', 'changenick'])
     @commands.has_permissions(manage_guild=True)
     @commands.guild_only()
@@ -269,7 +310,6 @@ class AdminCog(commands.Cog, name="Admin"):
         await ctx.send('Command not fully implemented yet!')
 
     @commands.command(name='setrule', aliases=['gamerule'])
-    # @commands.has_permissions(manage_server=True)
     @commands.guild_only()
     @checks.is_dev()
     async def _setrule(self, ctx, key: str, value: str = 'get'):
@@ -278,11 +318,12 @@ class AdminCog(commands.Cog, name="Admin"):
             Valid rules:
               - prefixless: True *
               - dad: True *
-              - harm: True *
+              - self-harm: True *
+              - warning_threshold: 3 *
         """
         key = key.lower()
         await ctx.send(rules.setrule(key, value, ctx.message.guild.id))
-
+    
     @commands.command(name='getrule')
     @commands.guild_only()
     @checks.is_dev()
@@ -296,6 +337,117 @@ class AdminCog(commands.Cog, name="Admin"):
         else:
             await ctx.send(f'```apache\n{ruleinf}```')
     
+    @commands.command(name='set_user_val')
+    @commands.guild_only()
+    @checks.is_dev()
+    async def _set_user_val(self,ctx, member: int,key: str='', value: int = 0):
+        """ Set a server-side user value.
+            Set value to 0 or leave as-is to clear that value.
+            Valid keys:
+                - total_warnings: 0 *
+                - current_warnings: 0 *
+        """
+        try:
+            member = await discord.ext.commands.UserConverter().convert(ctx, member)
+        except discord.ext.commands.BadArgument:
+            await ctx.send(f'Could not find user {member}.')
+            return
+        keys = ['total_warnings','current_warnings']
+        key = key.lower()
+        if key not in keys:
+            await ctx.send(f'{key} is not a valid key.')
+        else:
+            val = users.set_val(member.id, key, value, ctx.message.guild.id)
+            if val is False:
+                await ctx.send('```apache\nNot set.```')
+            return ctx.send(f'```apache\n{val}```')
+    
+    @commands.command(name='get_user_val')
+    @commands.guild_only()
+    @checks.is_dev()
+    async def _get_user_val(self,ctx, member: int,key: str=''):
+        """ Get a server-side user value.
+            Valid keys:
+                - total_warnings: 0 *
+                - current_warnings: 0 *
+        """
+        try:
+            member = await discord.ext.commands.UserConverter().convert(ctx, member)
+        except discord.ext.commands.BadArgument:
+            await ctx.send(f'Could not find user {member}.')
+            return
+        keys = ['total_warnings','current_warnings']
+        key = key.lower()
+        if key not in keys:
+            await ctx.send(f'{key} is not a valid key.')
+            return
+        val = users.get_val(member.id,key, ctx.message.guild.id)
+        if val is False:
+            await ctx.send('```apache\nNot set.```')
+        else:
+            await ctx.send(f'```apache\n{val}```')
+
+    @commands.command(name='get_member',aliases=['warn_history'])
+    @commands.guild_only()
+    @checks.is_dev()
+    async def _get_member(self,ctx, member: int):
+        '''
+        Get the warning history of a specific member.
+        '''
+        try:
+            member = await discord.ext.commands.UserConverter().convert(ctx, member)
+        except discord.ext.commands.BadArgument:
+            await ctx.send(f'Could not find user {member}.')
+            return
+        val = users.get_member(member.id,ctx.message.guild.id)
+        if val is False:
+            await ctx.send('```apache\nMember values never set.```')
+        else:
+            await ctx.send('Member: '+str(member.name)+'\nTotal warnings: '+str(val[0])+'\nCurrent warnings: '+str(val[1]))
+
+    @commands.command(name='increment_user_val',aliases=['warn'])
+    @commands.guild_only()
+    @checks.is_dev()
+    async def _increment_user_val(self,ctx, member: int,key: str='current_warnings'):
+        """ Warn a student.
+            Valid keys:
+                - total_warnings: 0 *
+                - current_warnings: 0 *
+            Default key:
+                - current_warnings
+        """
+        try:
+            member = await discord.ext.commands.UserConverter().convert(ctx, member)
+        except discord.ext.commands.BadArgument:
+            await ctx.send(f'Could not find user {member}.')
+            return
+        if key =='current_warnings':
+            val = users.get_val(member.id,key,ctx.message.guild.id)
+            if val is False:
+                await ctx.send('```apache\nNot set.```')
+            else:
+                ruleinf = rules.getrule('warning_threshold', ctx.message.guild.id)
+                if ruleinf is False:
+                    await ctx.send('```apache\nwarning_threshold not set.```')
+                else:
+                    try:
+                        ruleinf = int(ruleinf)
+                        if val >= ruleinf:
+                            await ctx.send(f'{member} reached {ruleinf} warnings. Muting.')
+                            users.increment_val(member.id,'total_warnings',ctx.message.guild.id)
+                            users.set_val(member.id,'current_warnings',0,ctx.message.guild.id)
+                            await self._mute(member)
+                            await self._get_member(member)
+                    except:
+                        await ctx.send(f'```apache\nwarning_threshold is not an integer ({ruleinf}).```')
+                
+        else:
+            val = users.increment_val(member=member.id,key=key,guildId=ctx.message.guild.id)
+            if val is False:
+                await ctx.send('```apache\nNot set.```')
+            else:
+                await self._get_member(member)
+
     @commands.command()
     @commands.guild_only()
     @checks.is_dev()

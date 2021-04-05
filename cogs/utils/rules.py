@@ -17,8 +17,8 @@ def setrule(key: str, value: str, guildId: int):
                     break
                 else:
                     if row[0] == key and int(row[1]) == int(guildId):
-                        cr.execute("UPDATE rules SET value = (?) WHERE keyword = (?)",
-                                  (value, key))
+                        cr.execute("UPDATE rules SET value = (?) WHERE keyword = (?) AND server = (?)",
+                                  (value, key,guildId))
                         db.commit()
                         varexist: bool = True
             if not varexist:
