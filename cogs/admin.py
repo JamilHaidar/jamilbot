@@ -438,6 +438,11 @@ class AdminCog(commands.Cog, name="Admin"):
                             users.set_val(member.id,'current_warnings',0,ctx.message.guild.id)
                             await self._mute(member)
                             await self._get_member(member)
+                        else:
+                            await ctx.send(f'{member} reached {val} warnings. Incrementing.')
+                            users.increment_val(member.id,'total_warnings',ctx.message.guild.id)
+                            users.increment_val(member.id,'current_warnings',ctx.message.guild.id)
+                            await self._get_member(member)
                     except:
                         await ctx.send(f'```apache\nwarning_threshold is not an integer ({ruleinf}).```')
                 
