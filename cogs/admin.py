@@ -30,9 +30,10 @@ class AdminCog(commands.Cog, name="Admin"):
         members = set([row[0] for row in users.get_table()])
         counter = 0
         for member in ctx.guild.members:
-            if member not in members:
-                counter+=1
-                users.set_val(member.id,'current_warnings',0,ctx.guild.id)
+            if member.id in members:
+                continue
+            counter+=1
+            users.set_val(member.id,'current_warnings',0,ctx.guild.id)
         await ctx.send(f'Updated {counter} new members.')
     @commands.command(name='start_class',dev=True)
     @commands.guild_only()
