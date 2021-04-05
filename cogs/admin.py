@@ -441,20 +441,18 @@ class AdminCog(commands.Cog, name="Admin"):
                         users.increment_val(member.id,'total_warnings',ctx.message.guild.id)
                         users.set_val(member.id,'current_warnings',0,ctx.message.guild.id)
                         await self._mute(member)
-                        await self._get_member(member.name)
+                        await self._get_member(ctx,member.name)
                     else:
                         await ctx.send(f'{member} has {val} warnings. Incrementing.')
                         users.increment_val(member.id,'total_warnings',ctx.message.guild.id)
                         users.increment_val(member.id,'current_warnings',ctx.message.guild.id)
-                        await self._get_member(member.name)
-                    
-                
+                        await self._get_member(ctx,member.name)                
         else:
             val = users.increment_val(member=member.id,key=key,guildId=ctx.message.guild.id)
             if val is False:
                 await ctx.send('```apache\nNot set.```')
             else:
-                await self._get_member(member.name)
+                await self._get_member(ctx,member.name)
 
     @commands.command(name='backup',aliases=['export','save_userdata'])
     @commands.guild_only()
@@ -462,7 +460,7 @@ class AdminCog(commands.Cog, name="Admin"):
     async def _save_userdata(self,ctx):
         conn = sqlite3.connect('users.db')
         df = pd.read_sql_query("SELECT * FROM users", conn)
-        df['member'] = [await ctx.guild.fetch_member(member).name for member in df['member']]
+        df['member'] = [(await ctx.guild.fetch_member(member)).name for member in df['member']]
         with BytesIO() as excel_binary:
             df.to_excel(excel_binary)
             excel_binary.seek(0)
