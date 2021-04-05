@@ -275,7 +275,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.guild_only()
     @checks.is_dev()
     async def _mute(self,ctx, member: discord.Member):
-        role = discord.utils.get(member.server.roles, name='Muted')
+        role = discord.utils.get(ctx.guild.roles, name='Muted')
         if role is None:
             await ctx.send('Role ```Muted``` does not exist!')
             return
