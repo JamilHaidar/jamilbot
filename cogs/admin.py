@@ -340,7 +340,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command(name='set_user_val')
     @commands.guild_only()
     @checks.is_dev()
-    async def _set_user_val(self,ctx, member: int,key: str='', value: int = 0):
+    async def _set_user_val(self,ctx, member: discord.member,key: str='', value: int = 0):
         """ Set a server-side user value.
             Set value to 0 or leave as-is to clear that value.
             Valid keys:
@@ -365,7 +365,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command(name='get_user_val')
     @commands.guild_only()
     @checks.is_dev()
-    async def _get_user_val(self,ctx, member: int,key: str=''):
+    async def _get_user_val(self,ctx, member: discord.Member,key: str=''):
         """ Get a server-side user value.
             Valid keys:
                 - total_warnings: 0 *
@@ -390,7 +390,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command(name='get_member',aliases=['warn_history'])
     @commands.guild_only()
     @checks.is_dev()
-    async def _get_member(self,ctx, member: int):
+    async def _get_member(self,ctx, member: discord.Member):
         '''
         Get the warning history of a specific member.
         '''
@@ -408,7 +408,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command(name='increment_user_val',aliases=['warn'])
     @commands.guild_only()
     @checks.is_dev()
-    async def _increment_user_val(self,ctx, member: int,key: str='current_warnings'):
+    async def _increment_user_val(self,ctx, member: discord.Member,key: str='current_warnings'):
         """ Warn a student.
             Valid keys:
                 - total_warnings: 0 *
