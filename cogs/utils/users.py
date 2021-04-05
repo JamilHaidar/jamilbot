@@ -41,11 +41,12 @@ def get_val(member:int, key: str, guildId: int):
 def get_member(member:int, guildId: int):
     db = sqlite3.connect('users.db')
     cr = db.cursor()
-    cr.execute('SELECT member, server FROM users WHERE member = (?) AND server = (?)',(member,guildId))
+    cr.execute('SELECT member, total_warnings, current_warnings, server FROM users WHERE member = (?) AND server = (?)',(member,guildId))
     val = False
     for row in cr.fetchall():
-        if row[0] == member and row[1] == guildId:
+        if row[0] == member and row[3] == guildId:
             val = [row[1],row[2]]
+            break
     cr.close()
     db.close()
     return val
