@@ -30,9 +30,10 @@ class AdminCog(commands.Cog, name="Admin"):
         members = set([row[0] for row in users.get_table()])
         counter = 0
         for member in ctx.guild.members:
-            if member not in members:
-                counter+=1
-                users.set_val(member.id,'current_warnings',0,ctx.guild.id)
+            if member.id in members:
+                continue
+            counter+=1
+            users.set_val(member.id,'current_warnings',0,ctx.guild.id)
         await ctx.send(f'Updated {counter} new members.')
     @commands.command(name='start_class',dev=True)
     @commands.guild_only()
@@ -436,11 +437,11 @@ class AdminCog(commands.Cog, name="Admin"):
                     except:
                         await ctx.send(f'```apache\nwarning_threshold is not an integer ({ruleinf}).```')
                         return
-                    if val >= ruleinf:
+                    if val+1 >= ruleinf:
                         await ctx.send(f'{member} reached {ruleinf} warnings. Muting.')
                         users.increment_val(member.id,'total_warnings',ctx.message.guild.id)
                         users.set_val(member.id,'current_warnings',0,ctx.message.guild.id)
-                        await self._mute(member)
+                        await self._mute(ctx,member)
                         await self._get_member(ctx,member.name)
                     else:
                         await ctx.send(f'{member} has {val} warnings. Incrementing.')
