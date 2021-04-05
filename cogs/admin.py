@@ -26,7 +26,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @checks.is_dev()
     async def _update_users(self,ctx):
         await ctx.send('Updating database.')
-        members = set(users.get_table()[:,0])
+        members = set([row[0] for row in users.get_table()])
         counter = 0
         for member in ctx.guild.members:
             if member not in members:
