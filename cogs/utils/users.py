@@ -75,6 +75,7 @@ def decrement_val(member:int, key:str, guildId:int):
 def get_table():
     db = sqlite3.connect('users.db')
     cur = db.cursor()
+    cur.execute('CREATE TABLE IF NOT EXISTS users(member INTEGER, total_warnings INTEGER, current_warnings INTEGER, server INTEGER)')
     cur.execute("SELECT * FROM users")
     rows = cur.fetchall()
     cur.close()
