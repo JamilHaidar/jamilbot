@@ -102,6 +102,21 @@ class OwnerCog(commands.Cog, name="Owner"):
         await msg.add_reaction('👋')
         await self.bot.logout()
 
+    @commands.command(name='toggle',description='Enable or disable a command!',hidden=True)
+    @commands.is_owner()
+    async def _toggle(self,ctx,*,command):
+        '''
+        Enable or disable a command!
+        '''
+        command = self.bot.get_command(command)
+        if command is None:
+            await ctx.send('Cannot find a command with that name.')
+        elif ctx.command == command:
+            await ctx.send('You cannot disable this command.')
+        else:
+            command.enabled = not command.enabled
+            ternary = 'enabled' if command.enabled else 'disabled'
+            await ctx.send(f'I have {ternary} {command.qualified_name}')
 
 def setup(bot):
     bot.add_cog(OwnerCog(bot))

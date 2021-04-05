@@ -1,3 +1,4 @@
+from inspect import istraceback
 import discord
 from discord.ext import commands
 import os
@@ -149,7 +150,8 @@ async def on_command_error(self, exception):
     elif isinstance(exception, TimeoutError):
         log.warn(f'TimeoutError: {exception}')
         return
-
+    elif isinstance(exception,commands.errors.DisabledCommand):
+        exception = f'Sorry {self.message.author.name}, that command is disabled!'
     error_embed = discord.Embed(title='',
                                 timestamp=datetime.datetime.utcnow(),
                                 description=f'```css\n{exception}```',
