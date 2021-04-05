@@ -340,7 +340,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.command(name='set_user_val')
     @commands.guild_only()
     @checks.is_dev()
-    async def _set_user_val(self,ctx, member: discord.member,key: str='', value: int = 0):
+    async def _set_user_val(self,ctx, member: discord.Member,key: str='', value: int = 0):
         """ Set a server-side user value.
             Set value to 0 or leave as-is to clear that value.
             Valid keys:
