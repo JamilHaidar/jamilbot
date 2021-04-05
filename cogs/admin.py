@@ -441,12 +441,12 @@ class AdminCog(commands.Cog, name="Admin"):
                         users.increment_val(member.id,'total_warnings',ctx.message.guild.id)
                         users.set_val(member.id,'current_warnings',0,ctx.message.guild.id)
                         await self._mute(member)
-                        await self._get_member(member)
+                        await self._get_member(member.name)
                     else:
                         await ctx.send(f'{member} has {val} warnings. Incrementing.')
                         users.increment_val(member.id,'total_warnings',ctx.message.guild.id)
                         users.increment_val(member.id,'current_warnings',ctx.message.guild.id)
-                        await self._get_member(member)
+                        await self._get_member(member.name)
                     
                 
         else:
@@ -454,7 +454,7 @@ class AdminCog(commands.Cog, name="Admin"):
             if val is False:
                 await ctx.send('```apache\nNot set.```')
             else:
-                await self._get_member(member)
+                await self._get_member(member.name)
 
     @commands.command(name='backup',aliases=['export','save_userdata'])
     @commands.guild_only()

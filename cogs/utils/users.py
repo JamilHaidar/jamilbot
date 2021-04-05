@@ -60,6 +60,8 @@ def increment_val(member:int, key:str, guildId:int):
     cr.execute(f"UPDATE users SET {key} = {key} + 1 WHERE member = (?) AND server = (?)",
                             (member,guildId))
     db.commit()
+    cr.close()
+    db.close()
     return get_val(member,key, guildId)
 
 def decrement_val(member:int, key:str, guildId:int):
@@ -71,6 +73,8 @@ def decrement_val(member:int, key:str, guildId:int):
     cr.execute(f"UPDATE users SET {key} = {key} - 1 WHERE member = (?) AND server = (?)",
                             (member,guildId))
     db.commit()
+    cr.close()
+    db.close()
     return get_val(member,key, guildId)
 
 def get_table():
