@@ -17,7 +17,7 @@ def set_val(member: int, name: str, key: str,value: int, guildId: int):
             db.commit()
         else:
             for row in rows:
-                if int(row[0]) == member and int(row[3]) == int(guildId):
+                if int(row[0]) == member and int(row[4]) == int(guildId):
                     cr.execute(f"UPDATE users SET {key} = (?) WHERE member = (?) AND server = (?)",
                                 (value,member,guildId))
                     db.commit()
