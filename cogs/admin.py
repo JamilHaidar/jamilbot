@@ -275,13 +275,10 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.guild_only()
     @checks.is_dev()
     async def _do_mute(self,ctx, member: discord.Member=None):
-        print(member.id)
         self.muted_members[member.id] = member.roles[1:]
-        print('extracted',member.roles[1:])
-        await member.remove_roles(member.roles[1:])
-        print('Preparing embed')
+        for role in self.muted_members[member.id]:
+            await member.remove_roles(role)
         embed=discord.Embed(title="User Muted!", description="**{0}** was muted by **{1}**!".format(member, ctx.message.author), color=0xff00f6)
-        print('Embed')
         await ctx.send(embed=embed)
     
     @commands.command(name='unmute', aliases=['forgive'])
@@ -289,7 +286,8 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.guild_only()
     @checks.is_dev()
     async def _do_unmute(self,ctx, member: discord.Member=None):
-        await member.add_roles(self.muted_members.pop(member.id))
+        for role in self.muted_members.pop(member.id):
+            await member.add_roles(role)
         embed=discord.Embed(title="User Unmuted!", description="**{0}** was unmuted by **{1}**!".format(member, ctx.message.author), color=0xff00f6)
         await ctx.send(embed=embed)
      
