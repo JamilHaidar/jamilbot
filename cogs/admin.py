@@ -26,6 +26,9 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.guild_only()
     @checks.is_dev()
     async def _update_users(self,ctx):
+        '''
+        Updates user database associated with current server.
+        '''
         await ctx.send('Updating database.')
         members = set([row[0] for row in users.get_table(ctx.guild.id)])
         counter = 0
@@ -39,6 +42,11 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.guild_only()
     @checks.is_dev()
     async def _start_class(self,ctx):
+        '''
+        Starts class. Be sure to issue this command from a voice channel.
+        Once class starts, all other members in other voice channels will join your vc.
+        Then attendance will start being taken automatically until class ends.
+        '''
         if ctx.guild.id in self.tasks:
             await ctx.send('Class already started!')
             return
@@ -81,6 +89,11 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.guild_only()
     @checks.is_dev()
     async def _end_class(self,ctx):
+        '''
+        Can only be used when class has started.
+        Removes everyone from the voice chat.
+        Stops taking attendance and sends a summary in excel format.
+        '''
         if ctx.guild.id not in self.tasks:
             await ctx.send('Class not started yet!')
             return
@@ -275,6 +288,10 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.guild_only()
     @checks.is_dev()
     async def _do_mute(self,ctx, member: discord.Member=None):
+        '''
+        Removes all roles from a member, rendering them muted.
+        Once unmuted, all previous roles go back to the member.
+        '''
         self.muted_members[member.id] = member.roles[1:]
         for role in self.muted_members[member.id]:
             await member.remove_roles(role)
@@ -286,6 +303,9 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.guild_only()
     @checks.is_dev()
     async def _do_unmute(self,ctx, member: discord.Member=None):
+        '''
+        Unmutes a person by giving them their previous roles back.
+        '''
         for role in self.muted_members.pop(member.id):
             await member.add_roles(role)
         embed=discord.Embed(title="User Unmuted!", description="**{0}** was unmuted by **{1}**!".format(member, ctx.message.author), color=0xff00f6)
@@ -457,6 +477,9 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.guild_only()
     @checks.is_dev()
     async def _save_userdata(self,ctx):
+        '''
+        Compile an excel sheet with all user data from current server and send it.
+        '''
         conn = sqlite3.connect('users.db')
         df = pd.read_sql_query(f"SELECT * FROM users WHERE server = ({ctx.guild.id})", conn)
         df = df.loc[:,['member','name','current_warnings','total_warnings']]
@@ -470,6 +493,9 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.guild_only()
     @checks.is_dev()
     async def join_vc(self,ctx):
+        '''
+        Calls a bot to current voice channel.
+        '''
         if ctx.author.voice is None:
             await ctx.send('Please join a voice channel first!')
         else:
@@ -480,12 +506,18 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.guild_only()
     @checks.is_dev()
     async def leave_vc(self,ctx):
+        '''
+        Kicks bot from current voice channel.
+        '''
         await ctx.voice_client.disconnect()
 
     @commands.command()
     @commands.guild_only()
     @checks.is_dev()
     async def clear(self,ctx,amount=5):
+        '''
+        Remove N previous messages plus your command message.
+        '''
         await ctx.channel.purge(limit=amount+1)
 
 def setup(bot):
