@@ -458,7 +458,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @checks.is_dev()
     async def _save_userdata(self,ctx):
         conn = sqlite3.connect('users.db')
-        df = pd.read_sql_query("SELECT * FROM users", conn)
+        df = pd.read_sql_query(f"SELECT * FROM users WHERE server = ({ctx.guild.id})", conn)
         df = df.loc[:,['member','name','current_warnings','total_warnings']]
         # df['member'] = [(await ctx.guild.fetch_member(member)).name for member in df['member']]
         with BytesIO() as excel_binary:
