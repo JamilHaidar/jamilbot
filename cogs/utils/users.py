@@ -82,7 +82,7 @@ def get_table(guildId:int):
     db = sqlite3.connect('users.db')
     cur = db.cursor()
     cur.execute('CREATE TABLE IF NOT EXISTS users(member INTEGER, name TEXT, total_warnings INTEGER, current_warnings INTEGER, server INTEGER)')
-    cur.execute("SELECT * FROM users WHERE server = (?)",(guildId))
+    cur.execute("SELECT * FROM users WHERE server = (?)",(guildId,))
     rows = cur.fetchall()
     cur.close()
     db.close()
