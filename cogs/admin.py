@@ -276,9 +276,18 @@ class AdminCog(commands.Cog, name="Admin"):
     @checks.is_dev()
     async def _mute(self,ctx, member: discord.Member):
         role = discord.utils.get(ctx.guild.roles, name='Muted')
+
         if role is None:
             await ctx.send('Role ```Muted``` does not exist!')
             return
+        else:
+            await ctx.send(f'Temporarily disabling {role} for {member}.')
+        try:
+            print(type(member))
+            print(member)
+            print(member.roles)
+        except:
+            print('Err in getting member roles')
         try:
             self.muted_members[member.id] = member.roles[0]
         except:
