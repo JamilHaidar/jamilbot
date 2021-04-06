@@ -3,6 +3,7 @@ import sqlite3
 import discord
 from discord.ext.commands.core import check, guild_only
 from pandas.core.frame import DataFrame
+import pytz
 import config as c
 import asyncio
 from io import BytesIO
@@ -53,6 +54,12 @@ class AdminCog(commands.Cog, name="Admin"):
         if ctx.author.voice is None:
             await ctx.send('Please join a voice channel first!')
         else:
+            now = datetime.datetime.now(pytz.timezone('Asia/Beirut'))
+            role = discord.utils.get(ctx.guild.roles, name=now.strftime("%A"))
+            for channel in ctx.guild.channels:
+                if channel.name.lower() == 'general':
+                    await channel.send(f'{role.mention}, class is starting!')
+                    break
             channel = ctx.author.voice.channel
             await channel.connect()
             try:
@@ -298,7 +305,7 @@ class AdminCog(commands.Cog, name="Admin"):
         embed=discord.Embed(title="User Muted!", description="**{0}** was muted by **{1}**!".format(member, ctx.message.author), color=0xff00f6)
         await ctx.send(embed=embed)
     
-    @commands.command(name='unmute', aliases=['forgive'])
+    @commands.command(name='unmute', aliases=['show_mercy'])
     @commands.has_permissions(manage_guild=True)
     @commands.guild_only()
     @checks.is_dev()
@@ -311,6 +318,19 @@ class AdminCog(commands.Cog, name="Admin"):
         embed=discord.Embed(title="User Unmuted!", description="**{0}** was unmuted by **{1}**!".format(member, ctx.message.author), color=0xff00f6)
         await ctx.send(embed=embed)
      
+
+    @commands.command(name='mutes', aliases=['list_muted'])
+    @commands.has_permissions(manage_guild=True)
+    @commands.guild_only()
+    @checks.is_dev()
+    async def _list_mutes(self,ctx):
+        output='Muted members:\n'
+        for member_id in self.muted_members:
+            member = ctx.guild.get_member(member_id)
+            if member is None:continue
+            output+=member.name+'\n'
+        await ctx.send(output)
+
     @commands.command(name='nick', aliases=['nickname', 'changenick'])
     @commands.has_permissions(manage_guild=True)
     @commands.guild_only()
@@ -472,6 +492,40 @@ class AdminCog(commands.Cog, name="Admin"):
                 await ctx.send('```apache\nNot set.```')
             else:
                 await self._get_member(ctx,member.name)
+    
+    @commands.command(name='decrement_user_val',aliases=['forgive'])
+    @commands.guild_only()
+    @checks.is_dev()
+    async def _decrement_user_val(self,ctx, member: str='',include_total: bool = False):
+        """ Forgive a student. Unmute them even.
+            Default key:
+                - current_warnings
+        """
+        try:
+            member = await discord.ext.commands.UserConverter().convert(ctx, member)
+        except discord.ext.commands.BadArgument:
+            await ctx.send(f'Could not find user {member}.')
+            return
+        member = ctx.guild.get_member(member.id)
+        val = users.get_val(member.id,'current_warnings',ctx.message.guild.id)
+        if val is False:
+            await ctx.send('```apache\nNot set.```')
+        else:
+            if val == 0:
+                await ctx.send(f'{member} has 0 warnings.')
+                val = users.get_val(member.id,'total_warnings',ctx.message.guild.id)
+                if include_total and val > 0:
+                    users.decrement_val(member.id,'total_warnings',ctx.message.guild.id)
+                await self._get_member(ctx,member.name)
+            else:
+                await ctx.send(f'{member} has {val} warnings. Decrementing.')
+                val = users.get_val(member.id,'total_warnings',ctx.message.guild.id)
+                if include_total and val > 0:
+                    users.decrement_val(member.id,'total_warnings',ctx.message.guild.id)
+                users.decrement_val(member.id,'current_warnings',ctx.message.guild.id)
+                await self._get_member(ctx,member.name)
+            if member.id in self.muted_members:
+                await self._do_unmute(ctx,member)
 
     @commands.command(name='backup',aliases=['export','save_userdata'])
     @commands.guild_only()
