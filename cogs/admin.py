@@ -274,7 +274,8 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.has_permissions(manage_guild=True)
     @commands.guild_only()
     @checks.is_dev()
-    async def _mute(self,ctx, member: discord.Member):
+    async def _do_mute(self,ctx, member: discord.Member=None):
+        print(member)
         self.muted_members[member.id] = member.roles[1:]
         await member.remove_roles(member.roles[1:])
         embed=discord.Embed(title="User Muted!", description="**{0}** was muted by **{1}**!".format(member, ctx.message.author), color=0xff00f6)
@@ -284,7 +285,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.has_permissions(manage_guild=True)
     @commands.guild_only()
     @checks.is_dev()
-    async def _unmute(self,ctx, member: discord.Member):
+    async def _do_unmute(self,ctx, member: discord.Member=None):
         await member.add_roles(self.muted_members.pop(member.id))
         embed=discord.Embed(title="User Unmuted!", description="**{0}** was unmuted by **{1}**!".format(member, ctx.message.author), color=0xff00f6)
         await ctx.send(embed=embed)
@@ -437,7 +438,7 @@ class AdminCog(commands.Cog, name="Admin"):
                         await ctx.send(f'{member} reached {ruleinf} warnings. Muting.')
                         users.increment_val(member.id,'total_warnings',ctx.message.guild.id)
                         users.set_val(member.id,'current_warnings',0,ctx.message.guild.id)
-                        await self._mute(ctx,member)
+                        await self._do_mute(ctx,member)
                         await self._get_member(ctx,member.name)
                     else:
                         await ctx.send(f'{member} has {val} warnings. Incrementing.')
