@@ -276,6 +276,9 @@ class AdminCog(commands.Cog, name="Admin"):
     @checks.is_dev()
     async def _do_mute(self,ctx, member: discord.Member=None):
         print(member)
+        print(type(member))
+        print(member.id)
+        print(ctx.guild.get_member(member.id))
         self.muted_members[member.id] = member.roles[1:]
         await member.remove_roles(member.roles[1:])
         embed=discord.Embed(title="User Muted!", description="**{0}** was muted by **{1}**!".format(member, ctx.message.author), color=0xff00f6)
