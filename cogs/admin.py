@@ -271,33 +271,22 @@ class AdminCog(commands.Cog, name="Admin"):
         await server.leave()
     
     @commands.command(name='mute', aliases=['timeout'])
-    @commands.has_permissions(manage_guild=True, kick_members=True, ban_members=True)
+    @commands.has_permissions(manage_guild=True)
     @commands.guild_only()
     @checks.is_dev()
     async def _mute(self,ctx, member: discord.Member):
-        role = discord.utils.get(ctx.guild.roles, name='Muted')
-
-        if role is None:
-            await ctx.send('Role ```Muted``` does not exist!')
-            return
-        else:
-            await ctx.send(f'Temporarily disabling {role} for {member}.')
-        try:
-            self.muted_members[member.id] = member.roles[0]
-        except:
-            self.muted_members[member.id] = member.roles[1]
-
-        await ctx.add_roles(member, role)
+        self.muted_members[member.id] = member.roles[1:]
+        await member.remove_roles(member.roles[1:])
         embed=discord.Embed(title="User Muted!", description="**{0}** was muted by **{1}**!".format(member, ctx.message.author), color=0xff00f6)
         await ctx.send(embed=embed)
     
     @commands.command(name='unmute', aliases=['forgive'])
-    @commands.has_permissions(manage_guild=True, kick_members=True, ban_members=True)
+    @commands.has_permissions(manage_guild=True)
     @commands.guild_only()
     @checks.is_dev()
     async def _unmute(self,ctx, member: discord.Member):
-        await ctx.add_roles(member, self.muted_members.pop(member.id))
-        embed=discord.Embed(title="User Muted!", description="**{0}** was muted by **{1}**!".format(member, ctx.message.author), color=0xff00f6)
+        await member.add_roles(self.muted_members.pop(member.id))
+        embed=discord.Embed(title="User Unmuted!", description="**{0}** was unmuted by **{1}**!".format(member, ctx.message.author), color=0xff00f6)
         await ctx.send(embed=embed)
      
     @commands.command(name='nick', aliases=['nickname', 'changenick'])
