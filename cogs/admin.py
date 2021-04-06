@@ -56,10 +56,11 @@ class AdminCog(commands.Cog, name="Admin"):
         else:
             now = datetime.datetime.now(pytz.timezone('Asia/Beirut'))
             role = discord.utils.get(ctx.guild.roles, name=now.strftime("%A"))
-            for channel in ctx.guild.channels:
-                if channel.name.lower() == 'general':
-                    await channel.send(f'{role.mention}, class is starting!')
-                    break
+            if role is not None:
+                for channel in ctx.guild.channels:
+                    if channel.name.lower() == 'general':
+                        await channel.send(f'{role.mention}, class is starting!')
+                        break
             channel = ctx.author.voice.channel
             await channel.connect()
             try:
