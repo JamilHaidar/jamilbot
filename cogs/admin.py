@@ -354,7 +354,7 @@ class AdminCog(commands.Cog, name="Admin"):
         if key not in keys:
             await ctx.send(f'{key} is not a valid key.')
         else:
-            val = users.set_val(member.id, key, value, ctx.message.guild.id)
+            val = users.set_val(member.id,member.name, key, value, ctx.message.guild.id)
             if val is False:
                 await ctx.send('```apache\nNot set.```')
             return await ctx.send(f'```apache\n{val}```')
@@ -438,7 +438,7 @@ class AdminCog(commands.Cog, name="Admin"):
                     if val+1 >= ruleinf:
                         await ctx.send(f'{member} reached {ruleinf} warnings. Muting.')
                         users.increment_val(member.id,'total_warnings',ctx.message.guild.id)
-                        users.set_val(member.id,'current_warnings',0,ctx.message.guild.id)
+                        users.set_val(member.id,member.name,'current_warnings',0,ctx.message.guild.id)
                         await self._do_mute(ctx,member)
                         await self._get_member(ctx,member.name)
                     else:
@@ -459,7 +459,8 @@ class AdminCog(commands.Cog, name="Admin"):
     async def _save_userdata(self,ctx):
         conn = sqlite3.connect('users.db')
         df = pd.read_sql_query("SELECT * FROM users", conn)
-        df['member'] = [(await ctx.guild.fetch_member(member)).name for member in df['member']]
+        df = df.loc[:,['member','name','current_warnings','total_warnings']]
+        # df['member'] = [(await ctx.guild.fetch_member(member)).name for member in df['member']]
         with BytesIO() as excel_binary:
             df.to_excel(excel_binary)
             excel_binary.seek(0)

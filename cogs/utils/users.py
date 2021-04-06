@@ -1,16 +1,16 @@
 import sqlite3
 
-def set_val(member: int, key: str,value: int, guildId: int):
+def set_val(member: int, name: str, key: str,value: int, guildId: int):
     db = sqlite3.connect('users.db')
     cr = db.cursor()
     if not value == 'get':
-        cr.execute('CREATE TABLE IF NOT EXISTS users(member INTEGER, total_warnings INTEGER, current_warnings INTEGER, server INTEGER)')
-        cr.execute('SELECT member, total_warnings, current_warnings, server FROM users WHERE member = (?) AND server = (?)',(member,guildId))
+        cr.execute('CREATE TABLE IF NOT EXISTS users(member INTEGER, name TEXT, total_warnings INTEGER, current_warnings INTEGER, server INTEGER)')
+        cr.execute('SELECT member, name, total_warnings, current_warnings, server FROM users WHERE member = (?) AND server = (?)',(member,guildId))
 
         rows = cr.fetchall()
         if len(rows)==0:
-            cr.execute(f"INSERT INTO users (member, total_warnings, current_warnings, server) VALUES (?, ?, ?, ?)",
-                        (member, 0, 0, guildId))
+            cr.execute(f"INSERT INTO users (member, name, total_warnings, current_warnings, server) VALUES (?, ?, ?, ?, ?)",
+                        (member,name, 0, 0, guildId))
             db.commit()
             cr.execute(f"UPDATE users SET {key} = (?) WHERE member = (?) AND server = (?)",
                             (value,member,guildId))
@@ -21,6 +21,7 @@ def set_val(member: int, key: str,value: int, guildId: int):
                     cr.execute(f"UPDATE users SET {key} = (?) WHERE member = (?) AND server = (?)",
                                 (value,member,guildId))
                     db.commit()
+                    break
         cr.close()
         db.close()
         val = get_val(member,key, guildId)
@@ -80,7 +81,7 @@ def decrement_val(member:int, key:str, guildId:int):
 def get_table():
     db = sqlite3.connect('users.db')
     cur = db.cursor()
-    cur.execute('CREATE TABLE IF NOT EXISTS users(member INTEGER, total_warnings INTEGER, current_warnings INTEGER, server INTEGER)')
+    cur.execute('CREATE TABLE IF NOT EXISTS users(member INTEGER, name TEXT, total_warnings INTEGER, current_warnings INTEGER, server INTEGER)')
     cur.execute("SELECT * FROM users")
     rows = cur.fetchall()
     cur.close()
