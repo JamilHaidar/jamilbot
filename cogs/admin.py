@@ -283,12 +283,6 @@ class AdminCog(commands.Cog, name="Admin"):
         else:
             await ctx.send(f'Temporarily disabling {role} for {member}.')
         try:
-            print(type(member))
-            print(member)
-            print(member.roles)
-        except:
-            print('Err in getting member roles')
-        try:
             self.muted_members[member.id] = member.roles[0]
         except:
             self.muted_members[member.id] = member.roles[1]
@@ -363,6 +357,7 @@ class AdminCog(commands.Cog, name="Admin"):
         except discord.ext.commands.BadArgument:
             await ctx.send(f'Could not find user {member}.')
             return
+        member = ctx.guild.get_member(member.id)
         keys = ['total_warnings','current_warnings']
         key = key.lower()
         if key not in keys:
@@ -387,6 +382,7 @@ class AdminCog(commands.Cog, name="Admin"):
         except discord.ext.commands.BadArgument:
             await ctx.send(f'Could not find user {member}.')
             return
+        member = ctx.guild.get_member(member.id)
         keys = ['total_warnings','current_warnings']
         key = key.lower()
         if key not in keys:
@@ -410,6 +406,7 @@ class AdminCog(commands.Cog, name="Admin"):
         except discord.ext.commands.BadArgument:
             await ctx.send(f'Could not find user {member}.')
             return
+        member = ctx.guild.get_member(member.id)
         val = users.get_member(member.id,ctx.message.guild.id)
         if val is False:
             await ctx.send('```apache\nMember values never set.```')
@@ -432,6 +429,7 @@ class AdminCog(commands.Cog, name="Admin"):
         except discord.ext.commands.BadArgument:
             await ctx.send(f'Could not find user {member}.')
             return
+        member = ctx.guild.get_member(member.id)
         if key =='current_warnings':
             val = users.get_val(member.id,key,ctx.message.guild.id)
             if val is False:
