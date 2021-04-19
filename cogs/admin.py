@@ -119,7 +119,7 @@ class AdminCog(commands.Cog, name="Admin"):
         with BytesIO() as excel_binary:
             df.to_excel(excel_binary)
             excel_binary.seek(0)
-            await ctx.send(file=discord.File(fp=excel_binary, filename=f'attendance-{datetime.datetime.now().date()}.xlsx'))
+            await ctx.send(file=discord.File(fp=excel_binary, filename=f'attendance-{datetime.datetime.now(pytz.timezone("Asia/Beirut")).date()}.xlsx'))
 
         vc = discord.utils.get(self.bot.voice_clients,guild=ctx.guild)
 
@@ -142,7 +142,7 @@ class AdminCog(commands.Cog, name="Admin"):
         guild = self.bot.get_guild(guild_id)
         channel_members = guild.get_channel(self.attendance_data[guild_id][1]).members
         channel_members = [elem.name +' - '+elem.nick if elem.nick is not None else elem.name for elem in channel_members]
-        self.attendance_data[guild_id][0].loc[datetime.datetime.now(),channel_members]=1.0 
+        self.attendance_data[guild_id][0].loc[datetime.datetime.now(pytz.timezone('Asia/Beirut')).strftime('%d/%m/%Y, %H:%M:%S'),channel_members]=1.0 
     
     async def attendance(self,guild_id: int):
         async with self.lock:

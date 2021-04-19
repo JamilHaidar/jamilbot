@@ -111,7 +111,7 @@ async def on_message(message):
                 await message.channel.send(embed=embed)
                 log.info(message)
         if str(rules.getrule('dad', message.guild.id)).lower() == 'true':
-            dads = ["i\'m","im","ana", "i am", "jeg er", "ich bin", "ik ben", "jag är", "æ e"]
+            dads = ["i\'m ","im ","ana ", "i am ", "jeg er ", "ich bin ", "ik ben ", "jag är ", "æ e "]
             for dad in dads:
                 if message.content.lower().startswith(dad):
                     if dad in message.content.lower():
